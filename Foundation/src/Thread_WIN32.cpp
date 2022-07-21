@@ -17,6 +17,7 @@
 #include "Poco/ErrorHandler.h"
 #include <process.h>
 
+#if !defined(__MINGW32__)
 
 namespace
 {
@@ -54,6 +55,8 @@ namespace
 	}
 }
 
+#endif
+
 
 namespace Poco {
 
@@ -84,7 +87,7 @@ void ThreadImpl::setNameImpl(const std::string& threadName)
 		int half = (POCO_MAX_THREAD_NAME_LEN - 1) / 2;
 		std::string truncName(threadName, 0, half);
 		truncName.append("~");
-		truncName.append(threadName, threadName.size() - half);
+		truncName.append(threadName, threadName.size() - half, std::string::npos);
 		realName = truncName;
 	}
 
@@ -227,7 +230,9 @@ unsigned __stdcall ThreadImpl::runnableEntry(void* pThread)
 {
 	auto * pThreadImpl = reinterpret_cast<ThreadImpl*>(pThread);
 	_currentThreadHolder.set(pThreadImpl);
+#if !defined(__MINGW32__)
 	setThreadName(-1, pThreadImpl->_name);
+#endif
 	try
 	{
 		reinterpret_cast<ThreadImpl*>(pThread)->_pRunnableTarget->run();
